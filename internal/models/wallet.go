@@ -3,11 +3,11 @@ package models
 import "time"
 
 type Wallet struct {
-	ID        int       `gorm:"column:id;primary_key"`
-	UserID    int       `gorm:"column:user_id"`
-	Balance   int       `gorm:"column:balance;type:decimal(15,2)"`
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime"`
-	UpdateAt  time.Time `gorm:"column:update_at;autoUpdateTime"`
+	ID        int       `gorm:"column:id;primary_key" json:"id"`
+	UserID    int       `gorm:"column:user_id;unique" json:"user_id"`
+	Balance   int       `gorm:"column:balance;type:decimal(15,2)" json:"balance"`
+	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"-"`
+	UpdateAt  time.Time `gorm:"column:update_at;autoUpdateTime" json:"-"`
 }
 
 func (*Wallet) TableName() string {

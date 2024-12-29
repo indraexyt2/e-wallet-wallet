@@ -8,16 +8,11 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func SendResponseHTTP(c *gin.Context, code int, message string, data interface{}, err error) {
-	if err != nil {
-		c.JSON(code, Response{
-			Status:  false,
-			Message: err.Error(),
-		})
-	}
-	c.JSON(code, Response{
-		Status:  true,
+func SendResponseHTTP(c *gin.Context, code int, status bool, message string, data interface{}) {
+	resp := Response{
+		Status:  status,
 		Message: message,
 		Data:    data,
-	})
+	}
+	c.JSON(code, resp)
 }

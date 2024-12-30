@@ -53,3 +53,41 @@ func (s *WalletService) CreditBalance(ctx context.Context, userID int, req *mode
 
 	return &resp, nil
 }
+
+func (s *WalletService) DebitBalance(ctx context.Context, userID int, req *models.TransactionRequest) (*models.TransactionResponse, error) {
+	var (
+		resp models.TransactionResponse
+	)
+
+	history, err := s.WalletRepository.GetWalletTransactionByReference(ctx, req.Reference)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return &resp, errors.Wrap(err, "failed to get wallet transaction by reference")
+		}
+	}
+
+	if history.ID > 0 {
+		return &resp, errors.New("wallet transaction already exists")
+	}
+
+	wallet, err := s.WalletRepository.UpdateBalance(ctx, userID, -req.Amount)
+	if err != nil {
+		return &resp, errors.Wrap(err, "failed to update balance")
+	}
+
+	walletTrx := &models.WalletTransaction{
+		WalletID:              wallet.ID,
+		Amount:                req.Amount,
+		WalletTransactionType: "DEBIT",
+		Reference:             req.Reference,
+	}
+
+	err = s.WalletRepository.CreateWalletTrx(ctx, walletTrx)
+	if err != nil {
+		return &resp, errors.Wrap(err, "failed to create wallet transaction")
+	}
+
+	resp.Balance = wallet.Balance - req.Amount
+
+	return &resp, nil
+}

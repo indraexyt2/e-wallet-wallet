@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"e-wallet-wallet/external"
 	"e-wallet-wallet/helpers"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -23,7 +22,7 @@ func (d *Dependency) MiddlewareValidateToken(c *gin.Context) {
 		)
 	}
 
-	tokenData, err := external.ValidateToken(c.Request.Context(), auth)
+	tokenData, err := d.External.ValidateToken(c.Request.Context(), auth)
 	if err != nil {
 		log.Error("failed to validate token", err)
 		helpers.SendResponseHTTP(

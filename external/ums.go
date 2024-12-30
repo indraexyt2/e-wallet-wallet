@@ -9,7 +9,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func ValidateToken(ctx context.Context, token string) (*models.TokenData, error) {
+type External struct {
+}
+
+func (e *External) ValidateToken(ctx context.Context, token string) (*models.TokenData, error) {
 	var (
 		resp models.TokenData
 	)

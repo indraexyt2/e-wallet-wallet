@@ -66,3 +66,82 @@ func (api *WalletHandler) Create(c *gin.Context) {
 		req,
 	)
 }
+
+func (api *WalletHandler) CreditBalance(c *gin.Context) {
+	var (
+		log = helpers.Logger
+		req *models.TransactionRequest
+	)
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error("failed to parse request body", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"failed to parse request body",
+			nil,
+		)
+		c.Abort()
+		return
+	}
+
+	if req.Validate() != nil {
+		log.Error("failed to validate request body")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"data validation failed",
+			nil,
+		)
+		return
+	}
+
+	token, ok := c.Get("token")
+	if !ok {
+		log.Error("token is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"token is required",
+			nil,
+		)
+		return
+	}
+
+	tokenData, ok := token.(*models.TokenData)
+	if !ok {
+		log.Error("token is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"token is required",
+			nil,
+		)
+		return
+	}
+
+	resp, err := api.WalletService.CreditBalance(c.Request.Context(), int(tokenData.UserID), req)
+	if err != nil {
+		log.Error("failed to credit balance", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to credit balance",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"wallet created successfully",
+		resp,
+	)
+}

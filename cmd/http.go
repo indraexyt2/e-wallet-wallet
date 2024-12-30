@@ -23,6 +23,7 @@ func ServeHTTP() {
 
 	walletV1 := r.Group("/wallet/v1")
 	walletV1.POST("/", d.WalletAPI.Create)
+	walletV1.PUT("/credit", d.MiddlewareValidateToken, d.WalletAPI.CreditBalance)
 
 	err = r.Run(":" + helpers.GetEnv("PORT", "8080"))
 	if err != nil {

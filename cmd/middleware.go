@@ -20,6 +20,8 @@ func (d *Dependency) MiddlewareValidateToken(c *gin.Context) {
 			"Authorization header is required",
 			nil,
 		)
+		c.Abort()
+		return
 	}
 
 	tokenData, err := d.External.ValidateToken(c.Request.Context(), auth)
@@ -32,6 +34,8 @@ func (d *Dependency) MiddlewareValidateToken(c *gin.Context) {
 			"failed to validate token",
 			nil,
 		)
+		c.Abort()
+		return
 	}
 
 	c.Set("token", tokenData)

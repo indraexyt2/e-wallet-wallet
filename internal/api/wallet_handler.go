@@ -224,3 +224,136 @@ func (api *WalletHandler) DebitBalance(c *gin.Context) {
 		resp,
 	)
 }
+
+func (api *WalletHandler) GetBalance(c *gin.Context) {
+	var (
+		log = helpers.Logger
+	)
+
+	token, ok := c.Get("token")
+	if !ok {
+		log.Error("token is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"token is required",
+			nil,
+		)
+		return
+	}
+
+	tokenData, ok := token.(*models.TokenData)
+	if !ok {
+		log.Error("token is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"token is required",
+			nil,
+		)
+		return
+	}
+
+	resp, err := api.WalletService.GetBalance(c.Request.Context(), int(tokenData.UserID))
+	if err != nil {
+		log.Error("failed to get balance", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to get balance",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"success",
+		resp,
+	)
+}
+
+func (api *WalletHandler) GetWalletHistory(c *gin.Context) {
+	var (
+		log   = helpers.Logger
+		param models.WalletHistoryParam
+	)
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		log.Error("failed to parse request body: ", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"bad request",
+			nil,
+		)
+		return
+	}
+
+	if param.WalletTransactionType != "" {
+		if param.WalletTransactionType != "CREDIT" && param.WalletTransactionType != "DEBIT" {
+			log.Error("invalid wallet transaction type")
+			helpers.SendResponseHTTP(
+				c,
+				http.StatusBadRequest,
+				false,
+				"invalid wallet transaction type",
+				nil,
+			)
+			return
+		}
+	}
+
+	token, ok := c.Get("token")
+	if !ok {
+		log.Error("token is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"token is required",
+			nil,
+		)
+		return
+	}
+
+	tokenData, ok := token.(*models.TokenData)
+	if !ok {
+		log.Error("token is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"token is required",
+			nil,
+		)
+		return
+	}
+
+	resp, err := api.WalletService.GetWalletHistory(c.Request.Context(), int(tokenData.UserID), param)
+	if err != nil {
+		log.Error("failed to get wallet history", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to get wallet history",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"success",
+		resp,
+	)
+}

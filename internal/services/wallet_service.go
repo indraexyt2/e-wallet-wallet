@@ -16,9 +16,9 @@ func (s *WalletService) Create(ctx context.Context, wallet *models.Wallet) error
 	return s.WalletRepository.CreateWallet(ctx, wallet)
 }
 
-func (s *WalletService) CreditBalance(ctx context.Context, userID int, req *models.TransactionRequest) (*models.TransactionResponse, error) {
+func (s *WalletService) CreditBalance(ctx context.Context, userID int, req *models.TransactionRequest) (*models.BalanceResponse, error) {
 	var (
-		resp models.TransactionResponse
+		resp models.BalanceResponse
 	)
 
 	history, err := s.WalletRepository.GetWalletTransactionByReference(ctx, req.Reference)
@@ -54,9 +54,9 @@ func (s *WalletService) CreditBalance(ctx context.Context, userID int, req *mode
 	return &resp, nil
 }
 
-func (s *WalletService) DebitBalance(ctx context.Context, userID int, req *models.TransactionRequest) (*models.TransactionResponse, error) {
+func (s *WalletService) DebitBalance(ctx context.Context, userID int, req *models.TransactionRequest) (*models.BalanceResponse, error) {
 	var (
-		resp models.TransactionResponse
+		resp models.BalanceResponse
 	)
 
 	history, err := s.WalletRepository.GetWalletTransactionByReference(ctx, req.Reference)
@@ -90,4 +90,37 @@ func (s *WalletService) DebitBalance(ctx context.Context, userID int, req *model
 	resp.Balance = wallet.Balance - req.Amount
 
 	return &resp, nil
+}
+
+func (s *WalletService) GetBalance(ctx context.Context, userID int) (*models.BalanceResponse, error) {
+	var (
+		resp = &models.BalanceResponse{}
+	)
+	wallet, err := s.WalletRepository.GetWalletByUserID(ctx, userID)
+	if err != nil {
+		return resp, errors.Wrap(err, "failed to get wallet by user id")
+	}
+
+	resp.Balance = wallet.Balance
+
+	return resp, nil
+}
+
+func (s *WalletService) GetWalletHistory(ctx context.Context, userID int, param models.WalletHistoryParam) ([]models.WalletTransaction, error) {
+	var (
+		resp []models.WalletTransaction
+	)
+
+	wallet, err := s.WalletRepository.GetWalletByUserID(ctx, userID)
+	if err != nil {
+		return resp, errors.Wrap(err, "failed to get wallet by user id")
+	}
+
+	offset := (param.Page - 1) * param.Limit
+	resp, err = s.WalletRepository.GetWalletHistory(ctx, wallet.ID, offset, param.Limit, param.WalletTransactionType)
+	if err != nil {
+		return resp, errors.Wrap(err, "failed to get wallet history")
+	}
+
+	return resp, nil
 }

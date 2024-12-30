@@ -60,3 +60,35 @@ func (r *WalletRepository) GetWalletTransactionByReference(ctx context.Context, 
 
 	return &resp, nil
 }
+
+func (r *WalletRepository) GetWalletByUserID(ctx context.Context, userID int) (*models.Wallet, error) {
+	var (
+		resp models.Wallet
+	)
+	err := r.DB.Where("user_id = ?", userID).Last(&resp).Error
+	if err != nil {
+		return &resp, err
+	}
+
+	return &resp, nil
+}
+
+func (r *WalletRepository) GetWalletHistory(ctx context.Context, walletID int, offset int, limit int, transactionType string) ([]models.WalletTransaction, error) {
+	var (
+		resp []models.WalletTransaction
+	)
+
+	sql := r.DB
+	if transactionType != "" {
+		sql = sql.Where("wallet_transaction_type = ?", transactionType)
+	}
+
+	err := sql.Model(&models.WalletTransaction{}).Limit(limit).Offset(offset).Order("id DESC").Find(&resp).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get wallet history: %w", err)
+	}
+
+	fmt.Println(resp)
+
+	return resp, nil
+}

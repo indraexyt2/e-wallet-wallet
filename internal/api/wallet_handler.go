@@ -205,7 +205,7 @@ func (api *WalletHandler) DebitBalance(c *gin.Context) {
 
 	resp, err := api.WalletService.DebitBalance(c.Request.Context(), int(tokenData.UserID), req)
 	if err != nil {
-		log.Error("failed to credit balance", err)
+		log.Error("failed to dredit balance", err)
 		helpers.SendResponseHTTP(
 			c,
 			http.StatusInternalServerError,

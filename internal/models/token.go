@@ -4,4 +4,5 @@ type TokenData struct {
 	UserID   int64
 	Username string
 	FullName string
+	Email    string
 }

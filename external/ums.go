@@ -3,6 +3,7 @@ package external
 import (
 	"context"
 	"e-wallet-wallet/external/proto/tokenvalidation"
+	"e-wallet-wallet/helpers"
 	"e-wallet-wallet/internal/models"
 	"fmt"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ func (e *External) ValidateToken(ctx context.Context, token string) (*models.Tok
 		resp models.TokenData
 	)
 
-	conn, err := grpc.Dial("localhost:7000", grpc.WithInsecure())
+	conn, err := grpc.Dial(helpers.GetEnv("UMS_GRPC_HOST", "localhost"), grpc.WithInsecure())
 	if err != nil {
 		return &resp, errors.Wrap(err, "failed to connect to grpc server")
 	}

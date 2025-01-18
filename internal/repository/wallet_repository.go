@@ -73,6 +73,18 @@ func (r *WalletRepository) GetWalletByUserID(ctx context.Context, userID int) (*
 	return &resp, nil
 }
 
+func (r *WalletRepository) GetWalletByID(ctx context.Context, walletID int) (*models.Wallet, error) {
+	var (
+		resp models.Wallet
+	)
+	err := r.DB.Where("user_id = ?", walletID).Last(&resp).Error
+	if err != nil {
+		return &resp, err
+	}
+
+	return &resp, nil
+}
+
 func (r *WalletRepository) GetWalletHistory(ctx context.Context, walletID int, offset int, limit int, transactionType string) ([]models.WalletTransaction, error) {
 	var (
 		resp []models.WalletTransaction
@@ -91,4 +103,24 @@ func (r *WalletRepository) GetWalletHistory(ctx context.Context, walletID int, o
 	fmt.Println(resp)
 
 	return resp, nil
+}
+
+func (r *WalletRepository) InsertWalletLink(ctx context.Context, req *models.WalletLink) error {
+	return r.DB.Create(req).Error
+}
+
+func (r *WalletRepository) GetWalletLink(ctx context.Context, walletID int, clientSource string) (*models.WalletLink, error) {
+	var (
+		resp models.WalletLink
+		err  error
+	)
+	err = r.DB.Where("wallet_id = ?", walletID).Where("client_source = ?", clientSource).First(&resp).Error
+	if err != nil {
+		return &resp, err
+	}
+	return &resp, nil
+}
+
+func (r *WalletRepository) UpdateStatusWalletLink(ctx context.Context, walletID int, clientSource string, status string) error {
+	return r.DB.Model(&models.WalletLink{}).Where("wallet_id = ?", walletID).Where("client_source = ?", clientSource).Update("status", status).Error
 }

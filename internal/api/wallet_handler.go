@@ -6,6 +6,7 @@ import (
 	"e-wallet-wallet/internal/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type WalletHandler struct {
@@ -344,6 +345,263 @@ func (api *WalletHandler) GetWalletHistory(c *gin.Context) {
 			http.StatusInternalServerError,
 			false,
 			"failed to get wallet history",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"success",
+		resp,
+	)
+}
+
+func (api *WalletHandler) CrateWalletLink(c *gin.Context) {
+	var (
+		log = helpers.Logger
+		req = &models.WalletLink{}
+	)
+
+	if err := c.ShouldBindJSON(req); err != nil {
+		log.Error("failed to parse request body: ", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"bad request",
+			nil,
+		)
+		return
+	}
+
+	clientID, ok := c.Get("Client-ID")
+	if !ok {
+		log.Error("client id is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"client source is required",
+			nil,
+		)
+		return
+	}
+
+	clientSource, ok := clientID.(string)
+	if !ok {
+		log.Error("client source is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"client source is required",
+			nil,
+		)
+		return
+	}
+
+	resp, err := api.WalletService.CreateWalletLink(c.Request.Context(), clientSource, req)
+	if err != nil {
+		log.Error("failed to get wallet link", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to get wallet link",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"success",
+		resp,
+	)
+}
+
+func (api *WalletHandler) WalletLinkConfirmation(c *gin.Context) {
+	var (
+		log = helpers.Logger
+		req = &models.WalletStructOTP{}
+	)
+
+	if err := c.ShouldBindJSON(req); err != nil {
+		log.Error("failed to parse request body: ", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"bad request",
+			nil,
+		)
+		return
+	}
+
+	walletIDs := c.Param("wallet_id")
+	if walletIDs == "" {
+		log.Error("wallet id is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"wallet id is required",
+			nil,
+		)
+		return
+	}
+
+	walletID, _ := strconv.Atoi(walletIDs)
+
+	clientID, ok := c.Get("Client-ID")
+	if !ok {
+		log.Error("client source is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"client source is required",
+			nil,
+		)
+		return
+	}
+
+	clientSource, ok := clientID.(string)
+	if !ok {
+		log.Error("client source is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"client source is required",
+			nil,
+		)
+		return
+	}
+
+	err := api.WalletService.WalletLinkConfirmation(c.Request.Context(), walletID, clientSource, req.OTP)
+	if err != nil {
+		log.Error("failed to confirm wallet link", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to confirm wallet link",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"success",
+		nil,
+	)
+}
+
+func (api *WalletHandler) WalletUnlink(c *gin.Context) {
+	var (
+		log = helpers.Logger
+	)
+
+	walletIDs := c.Param("wallet_id")
+	if walletIDs == "" {
+		log.Error("wallet id is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"wallet id is required",
+			nil,
+		)
+		return
+	}
+
+	walletID, _ := strconv.Atoi(walletIDs)
+
+	clientID, ok := c.Get("Client-ID")
+	if !ok {
+		log.Error("client source is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"client source is required",
+			nil,
+		)
+		return
+	}
+
+	clientSource, ok := clientID.(string)
+	if !ok {
+		log.Error("client source is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"client source is required",
+			nil,
+		)
+		return
+	}
+
+	err := api.WalletService.WalletUnlink(c.Request.Context(), walletID, clientSource)
+	if err != nil {
+		log.Error("failed to unlink wallet link", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to unlink wallet link",
+			nil,
+		)
+		return
+	}
+
+	helpers.SendResponseHTTP(
+		c,
+		http.StatusOK,
+		true,
+		"success",
+		nil,
+	)
+}
+
+func (api *WalletHandler) ExGetBalance(c *gin.Context) {
+	var (
+		log = helpers.Logger
+	)
+
+	walletIDs := c.Param("wallet_id")
+	if walletIDs == "" {
+		log.Error("wallet id is required")
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusBadRequest,
+			false,
+			"wallet id is required",
+			nil,
+		)
+		return
+	}
+
+	walletID, _ := strconv.Atoi(walletIDs)
+
+	resp, err := api.WalletService.ExGetBalance(c.Request.Context(), walletID)
+	if err != nil {
+		log.Error("failed to unlink wallet link", err)
+		helpers.SendResponseHTTP(
+			c,
+			http.StatusInternalServerError,
+			false,
+			"failed to unlink wallet link",
 			nil,
 		)
 		return

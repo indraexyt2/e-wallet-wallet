@@ -24,7 +24,7 @@ func SetupMySql() {
 
 	logrus.Info("Database initiated using gorm")
 
-	err = DB.AutoMigrate(&models.Wallet{}, &models.WalletTransaction{})
+	err = DB.AutoMigrate(&models.Wallet{}, &models.WalletTransaction{}, &models.WalletLink{})
 	if err != nil {
 		log.Fatal("Failed to migrate database", err)
 	}

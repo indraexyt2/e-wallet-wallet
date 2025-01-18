@@ -29,6 +29,13 @@ func ServeHTTP() {
 	walletV1.GET("/balance", d.MiddlewareValidateToken, d.WalletAPI.GetBalance)
 	walletV1.GET("/history", d.MiddlewareValidateToken, d.WalletAPI.GetWalletHistory)
 
+	exWalletV1 := walletV1.Group("/ex")
+	exWalletV1.Use(d.MiddlewareSignatureValidation)
+	exWalletV1.POST("/link", d.WalletAPI.CrateWalletLink)
+	exWalletV1.PUT("/link/:wallet_id/confirmation", d.WalletAPI.WalletLinkConfirmation)
+	exWalletV1.DELETE("/:wallet_id/unlink", d.WalletAPI.WalletUnlink)
+	exWalletV1.GET("/:wallet_id/balance", d.WalletAPI.ExGetBalance)
+
 	err = r.Run(":" + helpers.GetEnv("PORT", "8080"))
 	if err != nil {
 		log.Fatal("Failed to start server", err)
